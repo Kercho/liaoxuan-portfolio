@@ -1,0 +1,38 @@
+<!doctype html>
+<html lang="zh-CN">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>3D 展厅 · LIAOXUAN</title>
+  <link rel="stylesheet" href="motion.css">
+  <script src="motion.js" defer></script>
+</head>
+<body>
+  <header><a href="index.html">LIAOXUAN.PLAY</a><a href="index.html#works">返回作品 ↗</a></header>
+  <main class="journey">
+    <section class="stage" aria-labelledby="stage-title">
+      <div class="intro">
+        <h1 id="stage-title">3D 作品展厅</h1>
+        <p>上下滚动，旋转展品</p>
+      </div>
+      <canvas id="waves" aria-hidden="true"></canvas>
+      <div class="objects">
+        <div class="tile tile-vr" data-lane="0" data-x=".24" data-phase="0"><strong>VR / AR</strong><span>虚拟现实与增强现实</span></div>
+        <div class="tile tile-design" data-lane="0" data-x=".76" data-phase="110"><strong>Interaction</strong><span>交互设计</span></div>
+        <div class="tile tile-video" data-lane="2" data-x=".73" data-phase="168"><strong>Motion</strong><span>动画与视频剪辑</span></div>
+        <div class="tile tile-games" data-lane="3" data-x=".32" data-phase="-35"><strong>Play</strong><span>游戏开发</span></div>
+        <figure class="device" data-lane="1" data-x=".48" data-phase="58">
+          <div class="device-frame"><img src="media/BV1jf4y1U7Xi.jpg" alt="《月球救援》毕业设计封面"></div>
+          <figcaption>月球救援 · 毕业设计</figcaption>
+        </figure>
+      </div>
+      <div class="meter" aria-hidden="true"><span></span></div>
+      <div class="stage-controls" role="group" aria-label="展厅进度">
+        <button type="button" data-progress="0">起点</button>
+        <button type="button" data-progress=".5">中段</button>
+        <button type="button" data-progress="1">终点</button>
+      </div>
+    </section>
+  </main>
+</body>
+</html>

@@ -1,0 +1,149 @@
+<!doctype html>
+<html lang="zh-CN">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <meta name="description" content="LIAOXUAN 的个人作品集">
+  <title>LIAOXUAN · 像素作品集</title>
+  <link rel="stylesheet" href="style.css">
+  <link rel="stylesheet" href="interactions.css">
+  <script src="works.js" defer></script>
+  <script src="site.js" defer></script>
+  <script src="game.js" defer></script>
+  <script src="hero-animation.js" defer></script>
+  <script src="interactions.js" defer></script>
+</head>
+<body>
+  <header class="top">
+    <div class="top-inner">
+      <a class="brand" href="#home"><span class="brand-icon" aria-hidden="true">✦</span>LIAOXUAN<span class="brand-suffix">.PLAY</span></a>
+      <nav aria-label="页面导航"><a href="#about">关于</a><a href="#featured">精选</a><a href="#works">作品</a><a href="motion.html">3D 展厅</a></nav>
+      <output class="score" id="score" aria-label="金币数量"><span class="coin" aria-hidden="true"></span><span id="coin-count">00</span></output>
+    </div>
+    <div class="progress" aria-hidden="true"></div>
+  </header>
+  <div class="page-floats" aria-hidden="true">
+    <div class="page-float page-star"><canvas id="side-star" width="13" height="12"></canvas></div>
+    <div class="page-float page-boo"><canvas id="side-boo" width="15" height="13"></canvas></div>
+    <div class="page-float page-block"><canvas id="side-block" width="16" height="16"></canvas></div>
+    <div class="page-float page-coins"><span class="coin"></span><span class="coin"></span></div>
+  </div>
+  <div id="firework-effects" aria-hidden="true"></div>
+  <main>
+    <section id="home" class="hero">
+      <div class="hero-scene">
+        <div class="scene-plane">
+          <canvas id="world" width="400" height="200" aria-hidden="true"></canvas>
+          <canvas id="hero-animation" width="400" height="200" role="img" aria-label="马里奥向右跑，跳起顶破砖块，吃蘑菇变身后发射火球击倒乌龟怪"></canvas>
+          <canvas id="turtle" width="25" height="17" hidden></canvas>
+          <div class="scene-floats" aria-hidden="true">
+            <div class="scene-float float-star"><canvas id="float-star" width="13" height="12"></canvas></div>
+            <div class="scene-float float-boo"><canvas id="float-boo" width="15" height="13"></canvas></div>
+            <div class="scene-float float-coins"><span class="coin"></span><span class="coin"></span><span class="coin"></span></div>
+          </div>
+          <button type="button" id="hero-mushroom" title="点击蘑菇，开始试玩" aria-label="点击蘑菇，开始试玩"><canvas id="mushroom-sprite" width="12" height="10" aria-hidden="true"></canvas></button>
+        </div>
+        <button type="button" id="coin-rocket" aria-label="点燃金币烟花">
+          <canvas id="rocket-sprite" width="15" height="24" aria-hidden="true"></canvas>
+          <span class="rocket-fuse" aria-hidden="true"><span class="fuse-spark"></span></span>
+          <span class="rocket-prompt" aria-hidden="true">点燃烟花</span>
+        </button>
+      </div>
+      <div class="wrap hero-layout">
+        <div class="hero-copy">
+          <p class="label hero-label">LIAOXUAN / PORTFOLIO</p>
+          <h1 class="split-title"><span><b>个人</b></span><span><b>主页</b></span></h1>
+          <p class="hero-description">虚拟现实、交互设计与影像创作</p>
+          <div class="hero-actions">
+            <button class="button start-game" type="button" id="start-game"><span aria-hidden="true">▶</span> 进入游戏</button>
+            <a class="button explore-works" href="#works">探索作品 <span aria-hidden="true">↓</span></a>
+          </div>
+        </div>
+      </div>
+      <button id="hero-pause" type="button" class="hero-pause" aria-label="暂停动画" hidden><span aria-hidden="true"></span></button>
+    </section>
+    <section id="about" class="about profile" aria-labelledby="profile-title">
+      <div class="wrap profile-layout">
+        <div class="profile-copy reveal from-left">
+          <div class="section-heading"><h2 id="profile-title">个人介绍</h2></div>
+          <p>2020年本科毕业于 <strong>上海工程技术大学 中韩多媒体设计学院</strong>。</p>
+          <p>2022年硕士毕业于 <strong>韩国东西大学 计算机工程学院</strong>。</p>
+          <p>擅长交互设计（VR/AR/MR）、游戏设计、插画、影像拍摄与后期。</p>
+        </div>
+        <div class="profile-papers">
+          <h3>发表论文</h3>
+          <ol>
+            <li><span>韩国多媒体协会 KMMS</span><a href="https://uploads.strikinglycdn.com/files/c1cfe2c3-2ed0-4567-93c0-6b9f5f2d999d/Mixed%20reality%20multi-person%20interaction%20research%20based%20on%20the%20calibration%20of%20the%20HoloLens%20devices.pdf" target="_blank" rel="noopener">Mixed reality multi-person interaction research based on the calibration of the HoloLens devices <small>PDF ↗</small></a></li>
+            <li><span>韩国多媒体协会 KMMS</span><a href="https://uploads.strikinglycdn.com/files/c1cfe2c3-2ed0-4567-93c0-6b9f5f2d999d/Research%20on%20Mixed%20Reality%20Interaction%20Based%20on%20Oculus%20Quest%202%20Virtual%20Reality%20Equipment.pdf" target="_blank" rel="noopener">Research on Mixed Reality Interaction Based on Oculus Quest 2 Virtual Reality Equipment <small>PDF ↗</small></a></li>
+            <li><span>2022年国际工程与新兴技术国际会议（ICEET）</span><a href="https://uploads.strikinglycdn.com/files/11c69c60-c334-4813-84a7-178c73282b7e/Research%20on%20Mixed%20Reality%20Interaction%20Based%20on%20Oculus%20Quest%202%20Virtual%20Reality%20Equipment-8pags.pdf" target="_blank" rel="noopener">Research on Mixed Reality Interaction Based on Oculus Quest 2 Virtual Reality Equipment <small>PDF ↗</small></a></li>
+          </ol>
+        </div>
+      </div>
+    </section>
+    <section id="featured" class="featured">
+      <div class="wrap">
+        <div class="section-heading reveal from-left">
+          <p class="label">FEATURED</p>
+          <h2>精选作品</h2>
+        </div>
+        <button id="featured-work" class="featured-card" type="button" hidden>
+          <span class="featured-art reveal from-left"><img alt=""><span class="play" aria-hidden="true">▶</span></span>
+          <span class="featured-copy reveal from-right">
+            <span class="label">VR / 毕业设计</span>
+            <strong>月球救援</strong>
+            <span>观看《月球救援》毕业设计演示。</span>
+            <span class="featured-action">播放演示 <span aria-hidden="true">↗</span></span>
+          </span>
+        </button>
+        <div class="reel-header">
+          <h3>精选展映</h3>
+          <div class="reel-controls"><button type="button" id="reel-prev" aria-label="上一件精选作品">←</button><button type="button" id="reel-next" aria-label="下一件精选作品">→</button></div>
+        </div>
+        <div id="reel" class="reel" role="region" aria-label="精选作品轮播"></div>
+      </div>
+    </section>
+    <section id="works" class="chapter">
+      <div class="wrap">
+        <div class="catalog-heading">
+          <div class="section-heading reveal from-left"><p class="label">LEVEL SELECT</p><h2>作品关卡</h2></div>
+          <div class="catalog-tools reveal from-right"><label class="search"><span aria-hidden="true">⌕</span><input id="work-search" type="search" placeholder="搜索作品" aria-label="搜索作品"></label><button class="button finder-button" id="open-finder" type="button">帮我找作品</button></div>
+        </div>
+        <div id="work-filters" class="filters" role="group" aria-label="按内容筛选作品"></div>
+        <p id="work-count" role="status"></p>
+        <div id="work-list"></div>
+      </div>
+    </section>
+  </main>
+  <footer><span>LIAOXUAN</span><a href="#home">回到顶部 ↑</a></footer>
+  <dialog id="detail" aria-labelledby="detail-title">
+    <button class="close" type="button" aria-label="关闭作品详情">×</button>
+    <h2 id="detail-title"></h2>
+    <div id="detail-media"></div>
+    <p id="detail-text"></p>
+  </dialog>
+  <dialog id="finder" aria-labelledby="finder-title">
+    <button class="close" type="button" id="close-finder" aria-label="关闭作品向导">×</button>
+    <h2 id="finder-title">找一件作品</h2>
+    <form id="finder-form">
+      <label for="finder-category">选择作品类型</label>
+      <select id="finder-category"></select>
+      <label for="finder-keyword">关键词（选填）</label>
+      <input id="finder-keyword" type="search" placeholder="例如 月球、Unity">
+      <button type="submit" class="button">查看结果</button>
+    </form>
+  </dialog>
+  <dialog id="game" aria-labelledby="game-title">
+    <button class="close" type="button" id="close-game" aria-label="退出试玩">×</button>
+    <h2 id="game-title">像素试玩</h2>
+    <p id="game-status" role="status">收集金币，跑到旗杆。</p>
+    <canvas id="level" width="384" height="192" tabindex="0" aria-label="像素平台关卡，方向键移动，空格跳跃"></canvas>
+    <div class="game-controls">
+      <button type="button" class="button" data-control="left" aria-label="向左移动">←</button>
+      <button type="button" class="button" data-control="right" aria-label="向右移动">→</button>
+      <button type="button" class="button" data-control="jump">跳跃</button>
+      <button type="button" class="button" id="restart-game">重玩</button>
+    </div>
+    <p class="keyboard-help">方向键移动 · 空格跳跃</p>
+  </dialog>
+</body>
+</html>
