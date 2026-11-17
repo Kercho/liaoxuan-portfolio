@@ -77,29 +77,54 @@
   flex:0 0 100%;
   min-width:0;
   scroll-snap-align:center;
-  border:1px solid #ac7695;
-  background:#271931;
-  box-shadow:0 15px 25px #211229ba;
-  transform:perspective(680px) translate3d(0,var(--gallery-drop,0px),var(--gallery-depth,0px)) rotateY(var(--gallery-yaw,0deg));
+  border:0;
+  background:transparent;
+  box-shadow:none;
+  transform:perspective(1000px) translateY(var(--gallery-drop,0px)) rotateY(var(--gallery-yaw,0deg));
 }
-.visual-grid .card img{aspect-ratio:4/3;max-height:390px;object-fit:contain;background:#271931;border:0;pointer-events:none;user-select:none}
-.visual-grid .card.is-centered{border-color:#ffe0ac}
+.visual-grid .thumbnail{overflow:visible;background:transparent}
+.visual-grid .card img {
+  aspect-ratio:4/3;
+  max-height:390px;
+  object-fit:contain;
+  background:#392638;
+  border:0;
+  border-radius:6px 9px 50% 48% / 5px 6px 4% 3%;
+  box-shadow:0 9px 21px #21122976;
+  pointer-events:none;
+  user-select:none;
+}
+.gallery-cloth {
+  position:absolute;
+  inset:0;
+  width:100%;
+  height:100%;
+  opacity:0;
+  pointer-events:none;
+  filter:drop-shadow(0 9px 9px #21122990);
+}
+.visual-grid .has-cloth img{opacity:0}
+.has-cloth .gallery-cloth{opacity:1}
+.visual-grid .is-centered .gallery-cloth{filter:drop-shadow(0 12px 14px #211229a0)}
+.visual-grid .card:focus-visible{outline:2px solid var(--cream);outline-offset:3px}
 .visual-grid:is(.is-dragging,.is-wheeling){scroll-snap-type:none}
 .visual-grid.is-dragging,.visual-grid.is-dragging *{cursor:grabbing}
 @media(max-width:700px){.visual-grid{--gallery-card-width:75%;padding-block:20px 27px}}
 @media(prefers-reduced-motion:reduce){
   .visual-grid .card{transform:none}
+  .visual-grid .has-cloth img{opacity:1}
+  .gallery-cloth{display:none}
 }
 .visually-hidden{position:absolute;width:1px;height:1px;overflow:hidden;clip-path:inset(50%);white-space:nowrap}
 @media(prefers-reduced-motion:no-preference){
   .card .thumbnail img,.reel-slide img,.featured-art img{transition:scale .32s cubic-bezier(.2,.7,.25,1)}
   .card:not(.visual-grid .card):focus-visible .thumbnail img,.reel-slide:focus-visible img,.featured-card:focus-visible .featured-art img{scale:1.1}
-  .visual-grid .card{transition:scale .32s cubic-bezier(.2,.7,.25,1)}
-  .visual-grid .card:focus-visible{scale:1.06;z-index:1}
+  .visual-grid .card{transition:scale .46s cubic-bezier(.2,.75,.25,1)}
+  .visual-grid .card:focus-visible{scale:1.04;z-index:1}
 }
 @media(hover:hover) and (prefers-reduced-motion:no-preference){
   .card:not(.visual-grid .card):hover .thumbnail img,.reel:not(.is-dragging) .reel-slide:hover img,.featured-card:hover .featured-art img{scale:1.1}
-  .visual-grid:not(.is-dragging,.is-wheeling) .card:hover{scale:1.06;z-index:1}
+  .visual-grid:not(.is-dragging,.is-wheeling) .card:hover{scale:1.04;z-index:1}
 }
 #detail.image-preview[open] {
   display:grid;

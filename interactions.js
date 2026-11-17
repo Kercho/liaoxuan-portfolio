@@ -73,6 +73,92 @@ function enableMouseDrag(track) {
 }
 enableMouseDrag(reel);
 
+function drawGalleryCloth(surface, bend, hover) {
+  const {thumbnail, image, canvas, context} = surface;
+  const width = thumbnail.clientWidth;
+  const height = thumbnail.clientHeight;
+  if (!context || !image.naturalWidth || !width || !height) return;
+  const paint = [width, height, bend, hover];
+  if (surface.paint?.every((value, index) => value === paint[index])) return;
+  surface.paint = paint;
+
+  const resolution = Math.min(1.5, window.devicePixelRatio || 1);
+  const pixelWidth = Math.round(width * resolution);
+  const pixelHeight = Math.round(height * resolution);
+  if (canvas.width !== pixelWidth || canvas.height !== pixelHeight) {
+    canvas.width = pixelWidth;
+    canvas.height = pixelHeight;
+  }
+
+  context.setTransform(resolution, 0, 0, resolution, 0, 0);
+  context.clearRect(0, 0, width, height);
+  const edge = Math.max(2, width * .007);
+  const scale = Math.min((width * .976 - edge * 2) / image.naturalWidth,
+    (height * .86 - edge * 2) / image.naturalHeight);
+  const imageWidth = image.naturalWidth * scale;
+  const imageHeight = image.naturalHeight * scale;
+  const clothWidth = imageWidth + edge * 2;
+  const clothHeight = imageHeight + edge * 2;
+  const inset = (width - clothWidth) / 2;
+  const topEdge = (height - clothHeight) / 2 - height * .012;
+  const imageLeft = (width - imageWidth) / 2;
+  const imageRight = imageLeft + imageWidth;
+  const strips = Math.ceil(clothWidth / 4);
+  const seams = Array.from({length: strips + 1}, (_, index) => {
+    const fraction = index / strips;
+    const offset = fraction * 2 - 1;
+    const sag = (1 - offset ** 2) * .026;
+    const ripple = Math.sin(fraction * Math.PI * 2 - bend * .7) * bend * .031;
+    const top = topEdge + height * (sag + ripple + offset * bend * .026);
+    const bottom = top + clothHeight + height * (sag - ripple * .55);
+    return {x: inset + fraction * clothWidth, top, bottom};
+  });
+
+  context.beginPath();
+  context.moveTo(seams[0].x, seams[0].top);
+  for (const seam of seams.slice(1)) context.lineTo(seam.x, seam.top);
+  for (let index = strips; index >= 0; index--) {
+    const {x, bottom} = seams[index];
+    context.lineTo(x, bottom);
+  }
+  context.closePath();
+  context.save();
+  context.clip();
+  context.fillStyle = '#392638';
+  context.fillRect(0, 0, width, height);
+  for (let index = 0; index < strips; index++) {
+    const left = seams[index];
+    const right = seams[index + 1];
+    const x = Math.max(imageLeft, left.x);
+    const sectionWidth = Math.min(imageRight, right.x) - x;
+    if (sectionWidth <= 0) continue;
+    const columnHeight = left.bottom - left.top;
+    const drawHeight = imageHeight * columnHeight / clothHeight;
+    // A small overlap keeps the fabric continuous at fractional pixel boundaries.
+    context.drawImage(image, (x - imageLeft) / scale, 0, sectionWidth / scale, image.naturalHeight,
+      x, left.top + (columnHeight - drawHeight) / 2, sectionWidth + .7, drawHeight);
+  }
+
+  const ridge = Math.max(.3, Math.min(.7, .5 + bend * .14 + hover * .08));
+  const shading = context.createLinearGradient(inset, 0, width - inset, height * .22);
+  shading.addColorStop(0, '#1d122130');
+  shading.addColorStop(ridge - .22, '#23132920');
+  shading.addColorStop(ridge, '#fff3df16');
+  shading.addColorStop(ridge + .18, '#29162a24');
+  shading.addColorStop(1, '#fff3df10');
+  context.fillStyle = shading;
+  context.fillRect(0, 0, width, height);
+  context.fillStyle = '#fff6ef0b';
+  for (let y = 0; y < height; y += 3) context.fillRect(0, y, width, .65);
+  context.fillStyle = '#21132410';
+  for (let x = 0; x < width; x += 4) context.fillRect(x, 0, .65, height);
+  context.restore();
+  context.lineWidth = 1;
+  context.strokeStyle = '#ffe2c37d';
+  context.stroke();
+  thumbnail.classList.add('has-cloth');
+}
+
 for (const {section, grid: track} of groups.get('绘画与摄影').collections.values()) {
   const heading = section.querySelector('h4');
   const toolbar = document.createElement('div');
@@ -97,31 +183,77 @@ for (const {section, grid: track} of groups.get('绘画与摄影').collections.v
   track.setAttribute('role', 'region');
   track.setAttribute('aria-label', heading.textContent + '画廊');
   const cards = [...track.children];
+  const surfaces = new Map();
+  for (const card of cards) {
+    const thumbnail = card.querySelector('.thumbnail');
+    const image = thumbnail?.querySelector('img');
+    if (!image) continue;
+    const canvas = document.createElement('canvas');
+    canvas.className = 'gallery-cloth';
+    canvas.setAttribute('aria-hidden', 'true');
+    thumbnail.append(canvas);
+    surfaces.set(card, {thumbnail, image, canvas, context: canvas.getContext('2d'), bend: 0, speed: 0});
+    image.addEventListener('load', scheduleGallery, {once: true});
+  }
   let frame = 0;
   let wheelIdle;
   let active = 0;
+  let pointerCard;
+  let pointerOffset = 0;
+  let lastScroll = track.scrollLeft;
+  let lastFrame;
+  let scrollMomentum = 0;
 
-  function renderGallery() {
+  function renderGallery(timestamp) {
     frame = 0;
-    if (!track.clientWidth) return;
+    const trackWidth = track.clientWidth;
+    if (!trackWidth) {
+      lastFrame = undefined;
+      return;
+    }
     const visible = cards.filter(card => !card.hidden);
-    const center = track.scrollLeft + track.clientWidth / 2;
+    const scroll = track.scrollLeft;
+    const center = scroll + trackWidth / 2;
+    const step = lastFrame ? Math.min(2, (timestamp - lastFrame) / 16.67) : 1;
+    const travel = scroll - lastScroll;
+    lastFrame = timestamp;
+    lastScroll = scroll;
+    scrollMomentum += (Math.max(-1, Math.min(1, travel / 22)) - scrollMomentum) * .24;
+    const reduced = motion.matches;
+    const dragging = track.matches('.is-dragging,.is-wheeling');
+    let moving = !reduced && Math.abs(scrollMomentum) > .012;
     let closest = Infinity;
+
     visible.forEach((card, index) => {
-      const distance = card.offsetLeft + card.offsetWidth / 2 - center;
-      const angle = Math.max(-1.22, Math.min(1.22, distance / card.offsetWidth * .66));
-      const depth = 1 - Math.cos(angle);
-      card.style.setProperty('--gallery-yaw', angle * 180 / Math.PI + 'deg');
-      card.style.setProperty('--gallery-depth', -depth * 170 + 'px');
-      card.style.setProperty('--gallery-drop', depth * 28 + 'px');
+      const width = card.offsetWidth;
+      const distance = card.offsetLeft + width / 2 - center;
       if (Math.abs(distance) < closest) {
         closest = Math.abs(distance);
         active = index;
       }
+      if (reduced || !width || Math.abs(distance) > (trackWidth + width) / 2 + 24) return;
+      const position = Math.max(-1, Math.min(1, distance / width));
+      card.style.setProperty('--gallery-yaw', position * 17 + 'deg');
+      card.style.setProperty('--gallery-drop', Math.abs(position) * 12 + 'px');
+      const surface = surfaces.get(card);
+      if (!surface) return;
+      const hover = card === pointerCard && !dragging ? pointerOffset : 0;
+      const target = Math.max(-1, Math.min(1, position * .44 - scrollMomentum * .69 + hover * .34));
+      surface.speed = (surface.speed + (target - surface.bend) * .125 * step) * .72 ** step;
+      surface.bend += surface.speed * step;
+      if (Math.abs(target - surface.bend) < .003 && Math.abs(surface.speed) < .002) {
+        surface.bend = target;
+        surface.speed = 0;
+      } else {
+        moving = true;
+      }
+      drawGalleryCloth(surface, surface.bend, hover);
     });
+
     visible.forEach((card, index) => card.classList.toggle('is-centered', index === active));
     previous.disabled = active === 0;
     next.disabled = active >= visible.length - 1;
+    if (moving) scheduleGallery();
   }
 
   function scheduleGallery() {
@@ -129,7 +261,6 @@ for (const {section, grid: track} of groups.get('绘画与摄影').collections.v
   }
 
   function moveGallery(direction) {
-    renderGallery();
     const visible = cards.filter(card => !card.hidden);
     const card = visible[active + direction];
     if (!card) return;
@@ -145,6 +276,19 @@ for (const {section, grid: track} of groups.get('绘画与摄影').collections.v
     moveGallery(event.key === 'ArrowLeft' ? -1 : 1);
   });
   track.addEventListener('scroll', scheduleGallery, {passive: true});
+  track.addEventListener('pointermove', event => {
+    if (event.pointerType !== 'mouse' || motion.matches) return;
+    pointerCard = event.target.closest('.card');
+    if (pointerCard) {
+      const {left, width} = pointerCard.getBoundingClientRect();
+      pointerOffset = Math.max(-1, Math.min(1, (event.clientX - left) / width * 2 - 1));
+    }
+    scheduleGallery();
+  }, {passive: true});
+  track.addEventListener('pointerleave', () => {
+    pointerCard = undefined;
+    scheduleGallery();
+  });
   track.addEventListener('wheel', event => {
     if (event.ctrlKey || !event.cancelable || Math.abs(event.deltaX) >= Math.abs(event.deltaY)) return;
     const edge = track.scrollWidth - track.clientWidth;
@@ -158,6 +302,7 @@ for (const {section, grid: track} of groups.get('绘画与摄影').collections.v
   }, {passive: false});
   new ResizeObserver(scheduleGallery).observe(track);
   new MutationObserver(scheduleGallery).observe(track, {subtree: true, attributes: true, attributeFilter: ['hidden']});
+  motion.addEventListener('change', scheduleGallery);
   enableMouseDrag(track);
   scheduleGallery();
 }
